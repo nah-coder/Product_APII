@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/product_api_2
+    username: root
+    password: Nah1211zz@
+  jpa:
+    hibernate:
+      ddl-auto: update  # T? ??ng c?p nh?t c?u tr?c database
+    show-sql: true  # Hi?n th? c?c c?u l?nh SQL trong console
+  hikari:
+    minimum-idle: 5
+    maximum-pool-size: 10
+    pool-name: HikariCP
