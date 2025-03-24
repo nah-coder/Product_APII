@@ -17,6 +17,7 @@ public class ConfigCache {
                 .maximumSize(1000)  // Giới hạn số lượng tối đa là 1000
                 .build();
     }
+
     @Bean
     public Cache<String, String> resetPasswordCache() {
         return Caffeine.newBuilder()

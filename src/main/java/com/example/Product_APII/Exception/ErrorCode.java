@@ -7,6 +7,13 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     USER_EXISTED(1001,"User existed!",HttpStatus.BAD_REQUEST),
     INVALID_KEY(1042,"Invalid message key!",HttpStatus.NOT_FOUND),
+    UNAUTHENTICATED(1005,"Unauthorized!",HttpStatus.UNAUTHORIZED),
+    INVALID_OTP(1008,"Otp not exist!",HttpStatus.NOT_FOUND),
+    OTP_EXCEEDED_ATTEMPTS(1009,"otp input exceeded!",HttpStatus.BAD_REQUEST),
+    OTP_EXPIRED(1010,"Expired otp!",HttpStatus.BAD_REQUEST),
+    USER_NOT_EXISTED(1004,"user not existed!",HttpStatus.NOT_FOUND),
+
+
     ;
     private int code;
     private String message;
