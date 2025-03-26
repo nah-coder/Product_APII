@@ -11,6 +11,12 @@ spring:
     minimum-idle: 5
     maximum-pool-size: 10
     pool-name: HikariCP
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      timeout: 6000
 jwt:
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds

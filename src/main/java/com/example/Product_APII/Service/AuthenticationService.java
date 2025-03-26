@@ -18,6 +18,7 @@ import com.nimbusds.jwt.SignedJWT;
 import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class AuthenticationService {
@@ -58,47 +60,28 @@ public class AuthenticationService {
     protected long REFRESHABLE_DURATION;
 
 
-    @Autowired
-    Cache<String, OTP> otpCache;
-
-    @Autowired
-    Cache<String, String> resetPasswordCache;
-
 //    @Autowired
-//    private EmailService emailService;  // Tiêm dịch vụ gửi email vào
+//    Cache<String, OTP> otpCache;
+//
+//    @Autowired
+//    Cache<String, String> resetPasswordCache;
 
+    @Autowired
+    private RedisTemplate<String, String> customStringRedisTemplate;
 
-//    public OtpResponse login(AuthenticationRequest request) {
-//        User user = userRepository.findByEmail(request.getEmail())
-//                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-//
-//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-//        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
-//        if (!authenticated) {
-//            throw new AppException(ErrorCode.UNAUTHENTICATED);
-//        }
-//
-//        // Generate OTP
-//        String otp = generateOtp();
-//
-//        // Save OTP to cache
-//        Otp otpdb = Otp.builder()
-//                .otpCode(otp)
-//                .email(request.getEmail())
-//                .expiryTime(LocalDateTime.now().plusMinutes(5))
-//                .attempts(0)
-//                .build();
-//        otpCache.put(user.getEmail(), otpdb);
-//
-//        // Send OTP via email
-//        emailService.sendOtpEmail(user.getEmail(), otp);
-//
-//        // Return response
-//        return OtpResponse.builder()
-//                .otp(otp) // Có thể bỏ nếu bạn không muốn trả OTP về response.
-//                .email(request.getEmail())
-//                .build();
-//    }
+    @Autowired
+    private RedisTemplate<String, Object> objectRedisTemplate;
+
+    private String buildScope(User user) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+
+        if (!CollectionUtils.isEmpty(user.getRoles()))
+            user.getRoles().forEach(role -> {
+                stringJoiner.add("ROLE_" + role.getRoleName());
+            });
+
+        return stringJoiner.toString();
+    }
 
     public OtpResponse login(AuthenticationRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -110,10 +93,9 @@ public class AuthenticationService {
         OTP otpdb = OTP.builder()
                 .otpCode(otp)
                 .email(request.getEmail())
-                .expiryTime(LocalDateTime.now().plusMinutes(5))
                 .attempts(0)
                 .build();
-        otpCache.put(user.getEmail(), otpdb);
+        objectRedisTemplate.opsForValue().set(user.getEmail(), otpdb, 5, TimeUnit.MINUTES);
         return OtpResponse.builder()
                 .otp(otp)
                 .email(request.getEmail())
@@ -122,46 +104,22 @@ public class AuthenticationService {
 
     public AuthenticationResponse verifyOTP(OtpRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
-        OTP otp = otpCache.getIfPresent(request.getEmail());
+        OTP otp = (OTP) objectRedisTemplate.opsForValue().get(request.getEmail());
         if (otp == null) {
             throw new AppException(ErrorCode.INVALID_OTP);
         }
         if (!otp.getOtpCode().equals(request.getOtp())) {
             otp.setAttempts(otp.getAttempts() + 1);
             if (otp.getAttempts() >= 5) {
-                otpCache.invalidate(otp.getEmail());
+                objectRedisTemplate.opsForValue().set(request.getEmail(), otp, 5, TimeUnit.MINUTES);
                 throw new AppException(ErrorCode.OTP_EXCEEDED_ATTEMPTS);
             }
             throw new AppException(ErrorCode.INVALID_OTP);
         }
-        if (otp.getExpiryTime().isBefore(LocalDateTime.now())) {
-            throw new AppException(ErrorCode.OTP_EXPIRED);
-        }
-        otpCache.invalidate(request.getEmail());
+        objectRedisTemplate.delete(request.getEmail());
         String token = generateToken(user);
         return AuthenticationResponse.builder().token(token).build();
     }
-
-//    public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException {
-//        var signedJWT = verifyToken(request.getToken(), true);
-//        System.out.println("JWT Claims: " + signedJWT.getJWTClaimsSet().toJSONObject());
-//        var jit = signedJWT.getJWTClaimsSet().getJWTID();
-//        var expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-//
-//        Invalid_token invalidatedToken =
-//                Invalid_token.builder().id(jit).expiryTime(expiryTime).build();
-//
-//        invalidTokenRepository.save(invalidatedToken);
-//
-//        String email = signedJWT.getJWTClaimsSet().getSubject();
-//        System.out.println("Extracted email: " + email);
-//        User user =
-//                userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
-//
-//        String token = generateToken(user);
-//
-//        return AuthenticationResponse.builder().token(token).build();
-//    }
 
     private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
@@ -220,6 +178,28 @@ public class AuthenticationService {
         return String.valueOf(otp);
     }
 
+
+//    public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException {
+//        var signedJWT = verifyToken(request.getToken(), true);
+//        System.out.println("JWT Claims: " + signedJWT.getJWTClaimsSet().toJSONObject());
+//        var jit = signedJWT.getJWTClaimsSet().getJWTID();
+//        var expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+//
+//        Invalid_token invalidatedToken =
+//                Invalid_token.builder().id(jit).expiryTime(expiryTime).build();
+//
+//        invalidTokenRepository.save(invalidatedToken);
+//
+//        String email = signedJWT.getJWTClaimsSet().getSubject();
+//        System.out.println("Extracted email: " + email);
+//        User user =
+//                userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+//
+//        String token = generateToken(user);
+//
+//        return AuthenticationResponse.builder().token(token).build();
+//    }
+
 //    public String ResetPassword(ForgetPasswordRequest forgetPasswordRequest) {
 //        String cachedToken = resetPasswordCache.getIfPresent(forgetPasswordRequest.getEmail());
 //        if (cachedToken == null || !cachedToken.equals(forgetPasswordRequest.getToken())) {
@@ -248,14 +228,4 @@ public class AuthenticationService {
 //        return LinkResetResponse.builder().link(resetLink).build();
 //    }
 
-    private String buildScope(User user) {
-        StringJoiner stringJoiner = new StringJoiner(" ");
-
-        if (!CollectionUtils.isEmpty(user.getRoles()))
-            user.getRoles().forEach(role -> {
-                stringJoiner.add("ROLE_" + role.getRoleName());
-                });
-
-        return stringJoiner.toString();
-    }
 }

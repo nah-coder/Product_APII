@@ -5,15 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OTP {
+public class OTP implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String otpCode;
     private String email;
-    private LocalDateTime expiryTime;
     private int attempts;
 }
