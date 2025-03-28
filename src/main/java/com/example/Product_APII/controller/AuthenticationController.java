@@ -1,9 +1,8 @@
 package com.example.Product_APII.controller;
 
-import com.example.Product_APII.DTO.Request.ApiResponse;
-import com.example.Product_APII.DTO.Request.AuthenticationRequest;
-import com.example.Product_APII.DTO.Request.OtpRequest;
+import com.example.Product_APII.DTO.Request.*;
 import com.example.Product_APII.DTO.Response.AuthenticationResponse;
+import com.example.Product_APII.DTO.Response.LinkResetResponse;
 import com.example.Product_APII.DTO.Response.OtpResponse;
 import com.example.Product_APII.Service.AuthenticationService;
 import jakarta.validation.Valid;
@@ -35,7 +34,7 @@ public class AuthenticationController {
 //                .code(1000)
 //                .data(result).build());
 //    }
-//
+
 //    @PostMapping("/register")
 //    public ResponseEntity<ApiResponse<String>> register(@RequestBody @Valid UserCreationRequest request) {
 //        ApiResponse<String> response = new ApiResponse<>();
@@ -44,13 +43,13 @@ public class AuthenticationController {
 //        return ResponseEntity.ok(response);
 //    }
 
-//    @PutMapping("/reset-password")
-//    public ResponseEntity<ApiResponse<String>> ResetPassword(@RequestBody @Valid ForgetPasswordRequest forgetPasswordRequest) {
-//        String forget = authenticationService.ResetPassword(forgetPasswordRequest);
-//        return ResponseEntity.ok(ApiResponse.<String>builder()
-//                .code(1000)
-//                .data(forget).build());
-//    }
+    @PutMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> ResetPassword(@RequestBody @Valid ForgetPasswordRequest forgetPasswordRequest) {
+        String forget = authenticationService.ResetPassword(forgetPasswordRequest);
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .code(1000)
+                .data(forget).build());
+    }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> verifyOTP(@RequestBody @Valid OtpRequest request) {
@@ -60,13 +59,13 @@ public class AuthenticationController {
                 .data(result).build());
     }
 
-//    @PostMapping("/link-reset")
-//    public ResponseEntity<ApiResponse<LinkResetResponse>> LinkResetResponse(@RequestBody @Valid EmailRequest emailRequest) {
-//        LinkResetResponse result = authenticationService.LinkForgetPassword(emailRequest);
-//        return ResponseEntity.ok(ApiResponse.<LinkResetResponse>builder()
-//                .code(1000)
-//                .data(result).build());
-//    }
+    @PostMapping("/link-reset")
+    public ResponseEntity<ApiResponse<LinkResetResponse>> LinkResetResponse(@RequestBody @Valid EmailRequest emailRequest) {
+        LinkResetResponse result = authenticationService.LinkForgetPassword(emailRequest);
+        return ResponseEntity.ok(ApiResponse.<LinkResetResponse>builder()
+                .code(1000)
+                .data(result).build());
+    }
 
 //    @PostMapping("/logout")
 //    public ResponseEntity<ApiResponse<Void>> Logout(@RequestBody LogoutRequest logoutRequest) throws ParseException, JOSEException {

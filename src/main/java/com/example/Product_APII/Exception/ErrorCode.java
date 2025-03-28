@@ -12,6 +12,9 @@ public enum ErrorCode {
     OTP_EXCEEDED_ATTEMPTS(1009,"otp input exceeded!",HttpStatus.BAD_REQUEST),
     OTP_EXPIRED(1010,"Expired otp!",HttpStatus.BAD_REQUEST),
     USER_NOT_EXISTED(1004,"user not existed!",HttpStatus.NOT_FOUND),
+    INVALID_TOKEN(1012,"token invalid!",HttpStatus.NOT_FOUND),
+    PASSWORDS_DO_NOT_MATCH(1007,"Passwords are not duplicates!",HttpStatus.BAD_REQUEST),
+    CANNOT_RESET_PASSWORD(1011,"Can not reset password!",HttpStatus.BAD_REQUEST),
 
 
     ;

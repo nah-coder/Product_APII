@@ -1,9 +1,13 @@
 package com.example.Product_APII.Service;
 
 import com.example.Product_APII.DTO.Request.AuthenticationRequest;
+import com.example.Product_APII.DTO.Request.EmailRequest;
+import com.example.Product_APII.DTO.Request.ForgetPasswordRequest;
 import com.example.Product_APII.DTO.Request.OtpRequest;
 import com.example.Product_APII.DTO.Response.AuthenticationResponse;
+import com.example.Product_APII.DTO.Response.LinkResetResponse;
 import com.example.Product_APII.DTO.Response.OtpResponse;
+import com.example.Product_APII.Entity.Invalid_token;
 import com.example.Product_APII.Entity.OTP;
 import com.example.Product_APII.Entity.User;
 import com.example.Product_APII.Exception.AppException;
@@ -19,6 +23,9 @@ import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -59,12 +66,8 @@ public class AuthenticationService {
     @Value("${jwt.refreshable-duration}")
     protected long REFRESHABLE_DURATION;
 
-
-//    @Autowired
-//    Cache<String, OTP> otpCache;
-//
-//    @Autowired
-//    Cache<String, String> resetPasswordCache;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @Autowired
     private RedisTemplate<String, String> customStringRedisTemplate;
@@ -84,22 +87,27 @@ public class AuthenticationService {
     }
 
     public OtpResponse login(AuthenticationRequest request) {
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
-        if(!authenticated)
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
-        String otp = generateOtp();
-        OTP otpdb = OTP.builder()
-                .otpCode(otp)
-                .email(request.getEmail())
-                .attempts(0)
-                .build();
-        objectRedisTemplate.opsForValue().set(user.getEmail(), otpdb, 5, TimeUnit.MINUTES);
-        return OtpResponse.builder()
-                .otp(otp)
-                .email(request.getEmail())
-                .build();
+        Authentication authenticationManager1 = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail().toLowerCase(),request.getPassword()));
+        if(authenticationManager1.isAuthenticated()){
+            User user = userRepository.findByEmail(request.getEmail()).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
+            if(!authenticated)
+                throw new AppException(ErrorCode.UNAUTHENTICATED);
+            String otp = generateOtp();
+            OTP otpdb = OTP.builder()
+                    .otpCode(otp)
+                    .email(request.getEmail())
+                    .attempts(0)
+                    .build();
+            objectRedisTemplate.opsForValue().set(user.getEmail(), otpdb, 5, TimeUnit.MINUTES);
+            return OtpResponse.builder()
+                    .otp(otp)
+                    .email(request.getEmail())
+                    .build();
+        }
+        throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
 
     public AuthenticationResponse verifyOTP(OtpRequest request) {
@@ -200,32 +208,35 @@ public class AuthenticationService {
 //        return AuthenticationResponse.builder().token(token).build();
 //    }
 
-//    public String ResetPassword(ForgetPasswordRequest forgetPasswordRequest) {
-//        String cachedToken = resetPasswordCache.getIfPresent(forgetPasswordRequest.getEmail());
-//        if (cachedToken == null || !cachedToken.equals(forgetPasswordRequest.getToken())) {
-//            throw new AppException(ErrorCode.INVALID_TOKEN);
-//        }
-//        if (!forgetPasswordRequest.getPassword().equals(forgetPasswordRequest.getPasswordAgaint())) {
-//            throw new AppException(ErrorCode.PASSWORDS_DO_NOT_MATCH);
-//        }
-//        User user = userRepository.findByEmail(forgetPasswordRequest.getEmail())
-//                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-//        user.setPassword(passwordEncoder.encode(forgetPasswordRequest.getPassword()));
-//        userRepository.save(user);
-//        return "Đổi mật khẩu thành công";
-//    }
-//
-//    public LinkResetResponse LinkForgetPassword(EmailRequest emailRequest) {
-//        User newUser = userRepository.findByEmail(emailRequest.getEmail()).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
-//        String token = UUID.randomUUID().toString();
-//        if (!newUser.getEmail().equals(emailRequest.getEmail())) {
-//            throw new AppException(ErrorCode.CANNOT_RESET_PASSWORD);
-//        }
-//        resetPasswordCache.put(emailRequest.getEmail(), token);
-//        String resetLink = baseUrl + "/reset-password?token=" + resetPasswordCache.getIfPresent(emailRequest.getEmail());
-//        System.out.println("Cached OTP: " + resetPasswordCache.getIfPresent(emailRequest.getEmail()));
-//        return LinkResetResponse.builder().link(resetLink).build();
-//    }
+    public String ResetPassword(ForgetPasswordRequest forgetPasswordRequest) {
+        String cachedToken = customStringRedisTemplate.opsForValue().get(forgetPasswordRequest.getEmail());
+        if (cachedToken == null || !cachedToken.equals(forgetPasswordRequest.getToken())) {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+        if (!forgetPasswordRequest.getPassword().equals(forgetPasswordRequest.getPasswordAgaint())) {
+            throw new AppException(ErrorCode.PASSWORDS_DO_NOT_MATCH);
+        }
+        User user = userRepository.findByEmail(forgetPasswordRequest.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        user.setPassword(passwordEncoder.encode(forgetPasswordRequest.getPassword()));
+        userRepository.save(user);
+        // Xóa token trong Redis sau khi đổi mật khẩu thành công
+        customStringRedisTemplate.delete(forgetPasswordRequest.getEmail());
+        return "Đổi mật khẩu thành công";
+    }
+
+    public LinkResetResponse LinkForgetPassword(EmailRequest emailRequest) {
+        User newUser = userRepository.findByEmail(emailRequest.getEmail()).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+        String token = UUID.randomUUID().toString();
+        if (!newUser.getEmail().equals(emailRequest.getEmail())) {
+            throw new AppException(ErrorCode.CANNOT_RESET_PASSWORD);
+        }
+        customStringRedisTemplate.opsForValue().set(emailRequest.getEmail(), token, 15, TimeUnit.MINUTES);
+
+        String resetLink = baseUrl + "/reset-password?token=" + token;
+
+        return LinkResetResponse.builder().link(resetLink).build();
+    }
 
 }
