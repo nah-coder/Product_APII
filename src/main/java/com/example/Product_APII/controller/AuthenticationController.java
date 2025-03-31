@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
     @Autowired
     private AuthenticationService authenticationService;
-//    @Autowired
-//    private RegisterService registerService;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<OtpResponse>> authenticate(@RequestBody @Valid AuthenticationRequest request) {
@@ -66,11 +64,4 @@ public class AuthenticationController {
                 .code(1000)
                 .data(result).build());
     }
-
-//    @PostMapping("/logout")
-//    public ResponseEntity<ApiResponse<Void>> Logout(@RequestBody LogoutRequest logoutRequest) throws ParseException, JOSEException {
-//        authenticationService.logout(logoutRequest);
-//        return ResponseEntity.ok(ApiResponse.<Void>builder()
-//                .build());
-//    }
 }

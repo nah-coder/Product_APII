@@ -1,5 +1,6 @@
 package com.example.Product_APII.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -20,13 +21,6 @@ public class User {
     @Column(name = "user_id", nullable = false)
     private Long id;
 
-    @Size(max = 255)
-    @Column(name = "activation_code")
-    private String activationCode;
-
-    @Column(name = "activation_expiry")
-    private Instant activationExpiry;
-
     @Lob
     @Column(name = "avatar")
     private String avatar;
@@ -43,22 +37,8 @@ public class User {
     private String email;
 
     @Size(max = 255)
-    @Column(name = "email_code")
-    private String emailCode;
-
-    @Column(name = "email_expiry")
-    private Instant emailExpiry;
-
-    @Size(max = 255)
     @Column(name = "first_name")
     private String firstName;
-
-    @Size(max = 255)
-    @Column(name = "forgot_password_code")
-    private String forgotPasswordCode;
-
-    @Column(name = "forgot_password_expiry")
-    private Instant forgotPasswordExpiry;
 
     @Column(name = "is_active")
     private Boolean isActive;
@@ -76,10 +56,6 @@ public class User {
     private String phoneNumber;
 
     @Size(max = 255)
-    @Column(name = "purchase_address")
-    private String purchaseAddress;
-
-    @Size(max = 255)
     @Column(name = "sex")
     private String sex;
 
@@ -87,19 +63,8 @@ public class User {
     @Column(name = "user_name")
     private String userName;
 
-    @Size(max = 255)
-    @Column(name = "refresh_token")
-    private String refreshToken;
-
-    @Lob
-    @Column(name = "provider")
-    private String provider;
-
-    @Size(max = 255)
-    @Column(name = "provider_id")
-    private String providerId;
-
     @ManyToMany
+    @JsonIgnore
     @JoinTable(
             name = "user_role", // Bảng trung gian
             joinColumns = @JoinColumn(name = "user_id"),

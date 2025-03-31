@@ -29,10 +29,6 @@ public class UserSecurityService implements IUserSecurityService {
         User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-//        if(!user.isActive()){
-//            throw new CustomException("Account has not been activated",HttpStatus.FORBIDDEN);
-//        }
-
         return new org.springframework.security.core.userdetails.User(user.getEmail(),user.getPassword(),userAuthority(user.getRoles()));
     }
 

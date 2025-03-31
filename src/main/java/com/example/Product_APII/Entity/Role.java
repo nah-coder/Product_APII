@@ -1,5 +1,6 @@
 package com.example.Product_APII.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -22,6 +23,12 @@ public class Role {
     @Column(name = "role_name", length = 256)
     private String roleName;
 
+    @Size(max = 256)
+    @Column(name = "description", length = 256)
+    private String description;
+
+
     @ManyToMany(mappedBy = "roles")
+    @JsonIgnore
     private Set<User> users = new HashSet<>();
 }
