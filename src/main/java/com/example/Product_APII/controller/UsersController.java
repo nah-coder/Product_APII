@@ -21,7 +21,7 @@ public class UsersController {
     @Autowired
     private UsersService usersService;
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<List<GetAllResponse>>> getAllUsers() {
         ApiResponse<List<GetAllResponse>> apiResponse = new ApiResponse<>();
@@ -29,7 +29,7 @@ public class UsersController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<String>> addUser(@RequestBody @Valid UserCreationRequest request , Authentication authentication) {
         ApiResponse<String> apiResponse = new ApiResponse<>();

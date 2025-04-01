@@ -9,6 +9,7 @@ import com.example.Product_APII.DTO.Response.LinkResetResponse;
 import com.example.Product_APII.DTO.Response.OtpResponse;
 import com.example.Product_APII.Entity.Invalid_token;
 import com.example.Product_APII.Entity.OTP;
+import com.example.Product_APII.Entity.Role;
 import com.example.Product_APII.Entity.User;
 import com.example.Product_APII.Exception.AppException;
 import com.example.Product_APII.Exception.ErrorCode;
@@ -40,6 +41,7 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthenticationService {
@@ -80,8 +82,8 @@ public class AuthenticationService {
 
         if (!CollectionUtils.isEmpty(user.getRoles()))
             user.getRoles().forEach(role -> {
-                stringJoiner.add(role.getRoleName());
-            });
+                stringJoiner.add("ROLE_" + role.getRoleName());
+                });
 
         return stringJoiner.toString();
     }
@@ -129,33 +131,6 @@ public class AuthenticationService {
         return AuthenticationResponse.builder().token(token).build();
     }
 
-    private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
-        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
-
-        SignedJWT signedJWT = SignedJWT.parse(token);
-
-        Date expiryTime = (isRefresh)
-                ? new Date(signedJWT
-                .getJWTClaimsSet()
-                .getIssueTime()
-                .toInstant()
-                .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
-                .toEpochMilli())
-                : signedJWT.getJWTClaimsSet().getExpirationTime();
-
-//        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-//        if (expiryTime == null || !expiryTime.after(new Date())) {
-//            throw new AppException(ErrorCode.UNAUTHENTICATED);
-//        }
-        var verified = signedJWT.verify(verifier);
-
-        if (!(verified && expiryTime.after(new Date()))) throw new AppException(ErrorCode.UNAUTHENTICATED);
-
-//        if (invalidTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
-//            throw new AppException(ErrorCode.UNAUTHENTICATED);
-        return signedJWT;
-    }
-
     public String generateToken(User user) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
@@ -166,7 +141,7 @@ public class AuthenticationService {
                 .expirationTime(new Date(
                         Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
-                .claim("Role", buildScope(user))
+                .claim("scope", buildScope(user))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -181,32 +156,11 @@ public class AuthenticationService {
         }
     }
 
+
     public String generateOtp() {
         int otp = ThreadLocalRandom.current().nextInt(100000, 1000000); // OTP 6 chữ số
         return String.valueOf(otp);
     }
-
-
-//    public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException {
-//        var signedJWT = verifyToken(request.getToken(), true);
-//        System.out.println("JWT Claims: " + signedJWT.getJWTClaimsSet().toJSONObject());
-//        var jit = signedJWT.getJWTClaimsSet().getJWTID();
-//        var expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-//
-//        Invalid_token invalidatedToken =
-//                Invalid_token.builder().id(jit).expiryTime(expiryTime).build();
-//
-//        invalidTokenRepository.save(invalidatedToken);
-//
-//        String email = signedJWT.getJWTClaimsSet().getSubject();
-//        System.out.println("Extracted email: " + email);
-//        User user =
-//                userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
-//
-//        String token = generateToken(user);
-//
-//        return AuthenticationResponse.builder().token(token).build();
-//    }
 
     public String ResetPassword(ForgetPasswordRequest forgetPasswordRequest) {
         String cachedToken = customStringRedisTemplate.opsForValue().get(forgetPasswordRequest.getEmail());

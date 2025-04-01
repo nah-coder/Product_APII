@@ -22,7 +22,7 @@ import java.util.List;
 public class RoleController {
     RoleService roleService;
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     ApiResponse<RoleResponse> create(@RequestBody RoleRequest request) {
         return ApiResponse.<RoleResponse>builder()
@@ -30,7 +30,7 @@ public class RoleController {
                 .build();
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     ApiResponse<List<RoleResponse>> getAll() {
         return ApiResponse.<List<RoleResponse>>builder()
