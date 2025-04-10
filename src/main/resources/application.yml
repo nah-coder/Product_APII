@@ -20,14 +20,5 @@ spring:
 jwt:
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds
-springdoc:
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
-  swagger-ui:
-    enabled: true
-    path: /swagger-ui.html
-    persistAuthorization: true
-  default-produces-media-type: application/json
 
 

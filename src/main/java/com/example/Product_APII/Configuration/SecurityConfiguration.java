@@ -67,7 +67,12 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
                         .requestMatchers(SECURITY_ENDPOINTS).hasRole("ADMIN")
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())));
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
+                        .decoder(jwtDecoder())
+//                        .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                                )
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+                );
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         return httpSecurity.build();
     }
