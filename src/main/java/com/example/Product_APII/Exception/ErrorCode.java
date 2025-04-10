@@ -16,6 +16,8 @@ public enum ErrorCode {
     PASSWORDS_DO_NOT_MATCH(1009,"Passwords are not duplicates!",HttpStatus.BAD_REQUEST),
     CANNOT_RESET_PASSWORD(1010,"Can not reset password!",HttpStatus.BAD_REQUEST),
     ROLE_NOT_FOUND(1011,"Can not found role",HttpStatus.NOT_FOUND),
+    CATEGORY_NOT_FOUND(1012,"Can not found category",HttpStatus.NOT_FOUND),
+    MUSTNOTBELESSTHANZERO(1013, "Page and size must not be less than zero",HttpStatus.BAD_REQUEST),
 
 
     ;
