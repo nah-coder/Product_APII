@@ -18,6 +18,8 @@ public enum ErrorCode {
     ROLE_NOT_FOUND(1011,"Can not found role",HttpStatus.NOT_FOUND),
     CATEGORY_NOT_FOUND(1012,"Can not found category",HttpStatus.NOT_FOUND),
     MUSTNOTBELESSTHANZERO(1013, "Page and size must not be less than zero",HttpStatus.BAD_REQUEST),
+    PRODUCT_NOT_FOUND(1014, "Can not found product",HttpStatus.NOT_FOUND),
+    WISHLIST_NOT_FOUND(1015, "Can not found wishlist",HttpStatus.NOT_FOUND),
 
 
     ;
