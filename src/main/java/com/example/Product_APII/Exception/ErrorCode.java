@@ -20,6 +20,9 @@ public enum ErrorCode {
     MUSTNOTBELESSTHANZERO(1013, "Page and size must not be less than zero",HttpStatus.BAD_REQUEST),
     PRODUCT_NOT_FOUND(1014, "Can not found product",HttpStatus.NOT_FOUND),
     WISHLIST_NOT_FOUND(1015, "Can not found wishlist",HttpStatus.NOT_FOUND),
+    PAYMENT_NOT_FOUND(1016, "Can not found payment",HttpStatus.NOT_FOUND),
+    DELIVERY_NOT_FOUND(1017, "Can not found delivery",HttpStatus.NOT_FOUND),
+    ORDER_NOT_FOUND(1018, "Can not found order",HttpStatus.NOT_FOUND),
 
 
     ;

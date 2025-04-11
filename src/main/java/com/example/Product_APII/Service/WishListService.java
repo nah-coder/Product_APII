@@ -1,5 +1,6 @@
 package com.example.Product_APII.Service;
 
+import com.example.Product_APII.DTO.Request.WishListRequest;
 import com.example.Product_APII.DTO.Response.WishListResponse;
 import com.example.Product_APII.Entity.Product;
 import com.example.Product_APII.Entity.User;
@@ -94,4 +95,37 @@ public class WishListService {
         List<WishList> wishLists = wishListRepository.findAllByUserId(userId);
         return wishLists.stream().map(wishListMapper::toResponse).collect(Collectors.toList());
     }
+
+    public String createNewWishlist(Integer userId, String name) {
+        WishListRequest request = new WishListRequest();
+        request.setUserId(userId);
+        request.setWishListName(name != null ? name : "New Wishlist");
+
+        WishList wishList = wishListMapper.toEntity(request);
+        wishList.setProducts(new HashSet<>());
+        wishList.setQuantity(0);
+
+        WishList saved = wishListRepository.save(wishList);
+        wishListMapper.toResponse(saved);
+        return "Wishlist created successfully.";
+    }
+
+    public String deleteAllWishlistsByUserId(Integer userId) {
+        List<WishList> wishLists = wishListRepository.findAllByUserId(userId);
+        wishListRepository.deleteAll(wishLists);
+        return "All wishlists for the user have been deleted.";
+    }
+
+    public WishListResponse getWishlistById(Integer wishlistId) {
+        WishList wishList = wishListRepository.findById(wishlistId)
+                .orElseThrow(() -> new AppException(ErrorCode.WISHLIST_NOT_FOUND));
+        return wishListMapper.toResponse(wishList);
+    }
+
+    public boolean isProductInWishlist(Integer wishlistId, Integer productId) {
+        WishList wishList = wishListRepository.findById(wishlistId)
+                .orElseThrow(() -> new AppException(ErrorCode.WISHLIST_NOT_FOUND));
+        return wishList.getProducts().stream().anyMatch(p -> p.getId().equals(productId));
+    }
+
 }

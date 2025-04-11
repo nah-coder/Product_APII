@@ -70,4 +70,40 @@ public class WishListController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<Object>> createNewWishlist(
+            @RequestParam Integer userId,
+            @RequestParam(required = false) String name) {
+        String message = wishListService.createNewWishlist(userId, name);
+        ApiResponse<Object> response = ApiResponse.builder()
+                .code(1000)
+                .message(message)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<ApiResponse<Object>> deleteAllWishlistsByUser(
+            @PathVariable Integer userId) {
+        String message = wishListService.deleteAllWishlistsByUserId(userId);
+        ApiResponse<Object> response = ApiResponse.builder()
+                .code(1000)
+                .message(message)
+                .data(null)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{wishlistId}")
+    public ResponseEntity<ApiResponse<WishListResponse>> getWishlistById(
+            @PathVariable Integer wishlistId) {
+        WishListResponse data = wishListService.getWishlistById(wishlistId);
+        ApiResponse<WishListResponse> response = ApiResponse.<WishListResponse>builder()
+                .code(1000)
+                .data(data)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
 }

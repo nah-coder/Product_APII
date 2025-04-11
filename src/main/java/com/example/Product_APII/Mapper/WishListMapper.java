@@ -15,7 +15,7 @@ public interface WishListMapper {
     WishList toEntity(WishListRequest request);
 
     @Mapping(source = "user.id", target = "userId")
-    @Mapping(target = "productIds", expression = "java(entity.getProducts().stream().map(p -> p.getId()).collect(Collectors.toSet()))")
+//    @Mapping(target = "productIds", expression = "java(entity.getProducts().stream().map(p -> p.getId()).collect(Collectors.toSet()))")
     WishListResponse toResponse(WishList entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

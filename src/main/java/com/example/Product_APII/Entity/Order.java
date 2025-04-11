@@ -18,9 +18,6 @@ public class Order {
     @Column(name = "order_id", nullable = false)
     private Long id;
 
-    @Column(name = "cancel_order_time")
-    private Instant cancelOrderTime;
-
     @Column(name = "date")
     private Instant date;
 
