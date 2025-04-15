@@ -34,7 +34,10 @@ public class SecurityConfiguration {
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/**", "/mail/**","/permissions",
-            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/api/categories/**","/api/products","/api/wishlists/**","/api/payments/**","/api/deliveries/**","/api/orders/**"
+            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+            "/api/categories/**","/api/products","/api/wishlists/**",
+            "/api/payments/**","/api/deliveries/**","/api/orders/**",
+            "/api/cart/**","/api/order-detail/**"
     };
 
     private static final String[] PUBLIC_GET_ENDPOINTS = {

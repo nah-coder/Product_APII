@@ -16,7 +16,7 @@ public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // ID tự động tăng
     @Column(name = "cart_item_id", nullable = false)
-    private Long id;
+    private int id;
 
     @Column(name = "create_at")
     private Instant createAt;
