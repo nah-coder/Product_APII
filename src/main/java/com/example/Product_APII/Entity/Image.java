@@ -2,29 +2,25 @@ package com.example.Product_APII.Entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
-@Table(name = "image")
+@Table(name = "images")
 public class Image {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // ID tự động tăng
-    @Column(name = "image_id", nullable = false)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Lob
-    @Column(name = "image_data")
-    private String imageData;
+    private String name;
+    private String url;
+    private String type;
+    private Long size;
 
-    @Column(name = "is_icon")
-    private Boolean isIcon;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
-
+    private Long mappedId;      // ID của thực thể (userId, productId, postId...)
+    private String entityType;  // Tên thực thể: "user", "product", "post", ...
 }
