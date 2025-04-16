@@ -28,24 +28,8 @@ public class Review {
     private Instant date;
 
     @Size(max = 255)
-    @Column(name = "image_five")
-    private String imageFive;
-
-    @Size(max = 255)
-    @Column(name = "image_four")
-    private String imageFour;
-
-    @Size(max = 255)
-    @Column(name = "image_one")
-    private String imageOne;
-
-    @Size(max = 255)
-    @Column(name = "image_three")
-    private String imageThree;
-
-    @Size(max = 255)
-    @Column(name = "image_two")
-    private String imageTwo;
+    @Column(name = "image")
+    private String image;
 
     @NotNull
     @ColumnDefault("b'0'")

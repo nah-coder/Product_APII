@@ -87,4 +87,5 @@ public class Product {
             inverseJoinColumns = @JoinColumn(name = "wishlist_id")
     )
     private Set<WishList> wishlists = new HashSet<>();
+
 }
