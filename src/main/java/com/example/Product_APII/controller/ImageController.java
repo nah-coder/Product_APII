@@ -1,13 +1,15 @@
 package com.example.Product_APII.controller;
 
-import com.example.Product_APII.Entity.Image;
+import com.example.Product_APII.DTO.Request.ApiResponse;
 import com.example.Product_APII.Service.ImageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -15,41 +17,46 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ImageController {
 
-    private final ImageService imageService;
+    @Autowired
+    private ImageService imageService;
 
-    // Upload ảnh cho entity cụ thể
-    @PostMapping("/upload/{entityType}/{mappedId}")
-    public ResponseEntity<List<Image>> uploadImages(
-            @RequestParam("files") List<MultipartFile> files,
-            @PathVariable String entityType,
-            @PathVariable Long mappedId) {
-        return ResponseEntity.ok(imageService.uploadImagesGeneric(files, entityType, mappedId));
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse> uploadFiles(@RequestParam("files") List<MultipartFile> files) throws IOException {
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setData(imageService.uploadFiles(files));
+        return ResponseEntity.ok(apiResponse);
     }
 
-    // Lấy danh sách ảnh theo entity
-    @GetMapping("/{entityType}/{mappedId}")
-    public ResponseEntity<List<Image>> getImages(
-            @PathVariable String entityType,
-            @PathVariable Long mappedId) {
-        return ResponseEntity.ok(imageService.getImagesByEntity(entityType, mappedId));
-    }
-
-    // Xoá ảnh theo ID
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteImage(@PathVariable Long id) {
-        imageService.deleteImage(id);
-        return ResponseEntity.ok("Xoá ảnh thành công");
-    }
-
-    // Tải ảnh về (download)
     @GetMapping("/download/{filename:.+}")
-    public ResponseEntity<Resource> downloadImage(@PathVariable String filename) {
-        Resource resource = imageService.downloadImage(filename);
+    public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
+        return imageService.downloadFile(filename);
+    }
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + resource.getFilename() + "\"")
-                .body(resource);
+    // 1. API GET ảnh theo tên
+    @GetMapping("/get/{fileName}")
+    public ResponseEntity<?> getImage(@PathVariable String fileName) {
+        return imageService.getImage(fileName);
+    }
+
+    // API PUT Cập nhật ảnh (Xóa ảnh cũ và upload ảnh mới)
+    @PutMapping(value = "/update/{oldFileName}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse> updateImage(
+            @PathVariable String oldFileName,
+            @RequestParam("newFile") MultipartFile newFile) throws IOException {
+
+        // Xử lý cập nhật ảnh: xóa ảnh cũ và upload ảnh mới
+        String updatedFileUrl = imageService.updateImage(oldFileName, newFile);
+
+        // Tạo response và trả lại
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setData(updatedFileUrl);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    // 3. API DELETE Xóa ảnh
+    @DeleteMapping("/delete/{fileName}")
+    public ResponseEntity<?> deleteImage(@PathVariable String fileName) throws IOException {
+        imageService.deleteImage(fileName);
+        return ResponseEntity.ok("File " + fileName + " đã được xóa");
     }
 }

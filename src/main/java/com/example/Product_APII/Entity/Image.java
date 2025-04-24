@@ -1,11 +1,10 @@
 package com.example.Product_APII.Entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -16,11 +15,23 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-    private String url;
-    private String type;
-    private Long size;
+    private String name;      // Tên file
+    private String url;       // Đường dẫn ảnh
+    private String type;      // MIME type
+    private Long size;        // Kích thước ảnh (bytes)
 
-    private Long mappedId;      // ID của thực thể (userId, productId, postId...)
-    private String entityType;  // Tên thực thể: "user", "product", "post", ...
+    // Mối quan hệ với Product
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    // Mối quan hệ với Review
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id")
+    private Review review;
+
+    // Mối quan hệ với User
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }

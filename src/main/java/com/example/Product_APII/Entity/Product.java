@@ -88,4 +88,7 @@ public class Product {
     )
     private Set<WishList> wishlists = new HashSet<>();
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Image> images = new HashSet<>();
+
 }
